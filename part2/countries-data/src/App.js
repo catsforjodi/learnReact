@@ -2,13 +2,17 @@
 import {useState, useEffect} from 'react'
 import axios from 'axios'
 import Prompt from './components/Prompt'
+import CountriesList from './components/CountriesList'
 const App = () => {
   // STATES
+  const [allCountries, setAllCountries] = useState([])  
   const [value, setValue] = useState('')
   const [countryNames, setCountryNames] = useState([])
-  const [country, setCountry] = useState([])  
   const [countries, setCountries] = useState([])  
+  const [countriesData, setCountriesData] = useState([])  
   const [tooManyMatches, isTooManyMatches] = useState(false)
+  const [matchedCountries, setMatchedCountries] = useState([])
+  const [tempMatchedCountries, setTempMatchedCountries] = useState([])
   // EFFECTS
 
   // maps ALL countries object into array of names
@@ -17,45 +21,46 @@ const App = () => {
     axios
       .get(`https://studies.cs.helsinki.fi/restcountries/api/all`)
       .then(response => {
-        const results = Object.entries(response.data).map(country => country[1].name.common)
-        console.log('isArray? ', results instanceof Array)
-        setCountryNames(results)
+        const allCountries = Object.entries(response.data).map(country => country[1])
+        setAllCountries(allCountries)
+        console.log('allCountries: ' , allCountries)
+        const allCountriesNames = allCountries.map(country => country.name.common)
+        console.log('names: ', allCountriesNames)
+        setCountryNames(allCountriesNames)
       })
   }, [])
   
   useEffect(() => {
     console.log('input value:', value)
-    const matchedCountries = countryNames.filter((country) => country.toLowerCase().includes(value.toLowerCase()))
-    console.log('matchedCountries', matchedCountries)
+    const tempMatchedCountries = countryNames.filter((country) => country.toLowerCase().includes(value.toLowerCase()))
+    setMatchedCountries(tempMatchedCountries)
+
     if (matchedCountries.length > 10) {
-      console.log('BEAR')
       isTooManyMatches(true)
-    } else if (matchedCountries.length > 1 && matchedCountries.length <= 10) {
+    } else if (matchedCountries.length >= 1 && matchedCountries.length <= 10) {
       isTooManyMatches(false)
       setCountries(matchedCountries)
-    } else if (matchedCountries.length === 1) {
-      setCountry(matchedCountries[0])
+      getCountriesData(matchedCountries)
+      
     }
   }, [value])
 
-  // useEffect(() => {
-  //   console.log('effect run, country is now: ', country)
-
-  //   if (country) {
-  //     console.log('fetching country from server...')
-  //     axios
-  //       .get(`https://studies.cs.helsinki.fi/restcountries/api/name/${country}`)
-  //       .then(response => {
-  //         console.log(response)
-  //       })
-  //   }
-
-  // }, [country])
-  
-  // HANDLERS
   const handleChange = (event) => {
     setValue(event.target.value)
   }
+
+  // FUNCTIONS
+  const getCountriesData = (matchedCountries) => {
+    console.log('matchedCountries', matchedCountries)
+    let data = []
+    for (let i = 0; i < matchedCountries.length; i++) {
+      const element = matchedCountries[i];
+      const entry = allCountries.filter((country) => country.name.common ===element)[0]
+      data.push(entry)      
+    }
+    setCountriesData(data)
+  }
+
   return(
     <div>
         find countries: 
@@ -64,7 +69,7 @@ const App = () => {
           onChange = {handleChange}
           />
         <Prompt tooManyMatches={tooManyMatches}/>
-        {countries.map(country => <div>{country}</div>)}
+        <CountriesList countries={countries} countriesData={countriesData}/>
         
     </div>
 
