@@ -10,9 +10,11 @@ const App = () => {
   const [countryNames, setCountryNames] = useState([])
   const [countries, setCountries] = useState([])  
   const [countriesData, setCountriesData] = useState([])  
-  const [tooManyMatches, isTooManyMatches] = useState(false)
   const [matchedCountries, setMatchedCountries] = useState([])
   const [tempMatchedCountries, setTempMatchedCountries] = useState([])
+
+  const [tooManyMatches, isTooManyMatches] = useState(false)
+  const [valueEmpty, isValueEmpty] = useState(false)
   // EFFECTS
 
   // maps ALL countries object into array of names
@@ -23,22 +25,27 @@ const App = () => {
       .then(response => {
         const allCountries = Object.entries(response.data).map(country => country[1])
         setAllCountries(allCountries)
-        console.log('allCountries: ' , allCountries)
         const allCountriesNames = allCountries.map(country => country.name.common)
-        console.log('names: ', allCountriesNames)
         setCountryNames(allCountriesNames)
       })
   }, [])
   
   useEffect(() => {
-    console.log('input value:', value)
     const tempMatchedCountries = countryNames.filter((country) => country.toLowerCase().includes(value.toLowerCase()))
     setMatchedCountries(tempMatchedCountries)
 
-    if (matchedCountries.length > 10) {
+    if (!value) {
+      isTooManyMatches(false)
+      isValueEmpty(true)
+
+    } else if (matchedCountries.length > 10) {
       isTooManyMatches(true)
+      isValueEmpty(false)
+
     } else if (matchedCountries.length >= 1 && matchedCountries.length <= 10) {
       isTooManyMatches(false)
+      isValueEmpty(false)
+
       setCountries(matchedCountries)
       getCountriesData(matchedCountries)
       
@@ -51,7 +58,6 @@ const App = () => {
 
   // FUNCTIONS
   const getCountriesData = (matchedCountries) => {
-    console.log('matchedCountries', matchedCountries)
     let data = []
     for (let i = 0; i < matchedCountries.length; i++) {
       const element = matchedCountries[i];
@@ -66,10 +72,11 @@ const App = () => {
         find countries: 
         <input 
           name="MyInput"
+          value={value}
           onChange = {handleChange}
           />
         <Prompt tooManyMatches={tooManyMatches}/>
-        <CountriesList countries={countries} countriesData={countriesData}/>
+        <CountriesList show={valueEmpty} countries={countries} countriesData={countriesData}/>
         
     </div>
 

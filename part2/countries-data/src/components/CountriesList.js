@@ -1,6 +1,7 @@
-const CountriesList = ({countries, countriesData}) => {
-    console.log('in CountriesList component, countriesData:', countriesData)
-    if (countriesData.length > 1) {
+const CountriesList = ({valueEmpty, countries, countriesData}) => {
+    if (valueEmpty) {
+        return
+    } else if (countriesData.length > 1) {
         return (countriesData.map(country => <div>{country.name.common}</div>))
     } else if (countriesData.length === 1) {
         return (<div>
